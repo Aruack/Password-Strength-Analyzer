@@ -104,8 +104,8 @@ Password-Strength-Analyzer python/
 ### 1. Clone / Download the project
 
 ```bash
-git clone https://github.com/your-username/password-strength-analyzer.git
-cd "Password-Strength-Analyzer python"
+git clone https://github.com/Aryan/password-strength-analyzer.git
+cd "Password-Strength-Analyzer"
 ```
 
 ### 2. Install dependencies
