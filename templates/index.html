@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Password Strength Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ── Reset & Design System Tokens ── */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-base: #060911;
+      --bg-surface: #0b1120;
+      --bg-elevated: #111a2e;
+      --bg-subtle: rgba(255, 255, 255, 0.03);
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-focus: #3b82f6;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --accent-indigo: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #f43f5e;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1rem 4rem;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.12), transparent),
+        radial-gradient(circle at 100% 80%, rgba(99, 102, 241, 0.06), transparent);
+      background-attachment: fixed;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Shell Container (Single Solid Column) ── */
+    .app-shell {
+      width: min(680px, 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ── Top Navigation Bar ── */
+    .nav-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      margin-bottom: 0.5rem;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+
+    .brand-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+
+    .brand-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-elevated);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    /* ── Component Cards ── */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .card-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card-label svg {
+      width: 14px;
+      height: 14px;
+      color: var(--accent-blue);
+    }
+
+    /* ── Input Section ── */
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-input {
+      width: 100%;
+      padding: 0.95rem 5.5rem 0.95rem 1.15rem;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--text-primary);
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.2s ease;
+      letter-spacing: 0.02em;
+    }
+
+    .password-input::placeholder {
+      font-family: var(--font-sans);
+      color: var(--text-muted);
+      letter-spacing: normal;
+    }
+
+    .password-input:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      background: #131d33;
+    }
+
+    .input-actions {
+      position: absolute;
+      right: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.4rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .icon-btn svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    /* Button Action Row */
+    .button-row {
+      display: flex;
+      gap: 0.65rem;
+      margin-top: 0.85rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.75rem 1.25rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      border: 1px solid transparent;
+      flex: 1;
+    }
+
+    .btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #3b82f6;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+    }
+
+    .btn:active {
+      transform: scale(0.985);
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-icon {
+      animation: spin 0.75s linear infinite;
+    }
+
+    /* ── Metrics Grid (Executive Overview) ── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 480px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .metric-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .metric-caption {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    .metric-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* ── Segmented Strength Meter ── */
+    .meter-container {
+      margin-top: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .meter-segments {
+      display: flex;
+      gap: 5px;
+      height: 7px;
+    }
+
+    .meter-segment {
+      flex: 1;
+      background: var(--bg-elevated);
+      border-radius: 9999px;
+      transition: background 0.3s ease;
+    }
+
+    /* ── Security Policy Checklist ── */
+    .policy-checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .policy-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+
+    .policy-item-left {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .policy-status-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .policy-status-icon svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .policy-item.passed {
+      color: var(--text-primary);
+      border-color: rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    .policy-item.passed .policy-status-icon {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+
+    .policy-item.failed {
+      border-color: rgba(244, 63, 94, 0.2);
+      background: rgba(244, 63, 94, 0.03);
+    }
+
+    .policy-item.failed .policy-status-icon {
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--danger);
+    }
+
+    .policy-badge {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Breach Surveillance (SOC Alert Banner) ── */
+    .breach-card {
+      display: none;
+      border-radius: 12px;
+      padding: 1.15rem;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      transition: all 0.3s ease;
+    }
+
+    .breach-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.4rem;
+    }
+
+    .breach-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .breach-tag svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .breach-count-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.6rem;
+      border-radius: 9999px;
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--danger);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .breach-explanation {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Breach States */
+    .breach-card.safe {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    .breach-card.safe .breach-tag {
+      color: var(--success);
+    }
+
+    .breach-card.leaked {
+      border-color: rgba(244, 63, 94, 0.35);
+      background: rgba(244, 63, 94, 0.06);
+    }
+
+    .breach-card.leaked .breach-tag {
+      color: var(--danger);
+    }
+
+    .breach-card.checking {
+      border-color: rgba(59, 130, 246, 0.3);
+      background: rgba(59, 130, 246, 0.04);
+    }
+
+    .breach-card.checking .breach-tag {
+      color: var(--accent-blue);
+    }
+
+    /* ── Remediation Guidance (Suggestions) ── */
+    .remediation-card {
+      display: none;
+      border-radius: 12px;
+      padding: 1.15rem;
+      background: rgba(245, 158, 11, 0.04);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .remediation-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--warning);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .remediation-header svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .remediation-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .remediation-item {
+      font-size: 0.82rem;
+      color: #fde68a;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .remediation-item::before {
+      content: "•";
+      color: var(--warning);
+      font-weight: bold;
+    }
+
+    /* ── Common Passwords Pills ── */
+    .common-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .common-pill {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      background: rgba(244, 63, 94, 0.08);
+      border: 1px solid rgba(244, 63, 94, 0.22);
+      color: #fda4af;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .common-pill:hover {
+      background: rgba(244, 63, 94, 0.2);
+      border-color: rgba(244, 63, 94, 0.45);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* Copied notification toast */
+    .copy-toast {
+      position: fixed;
+      bottom: 24px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--accent-blue);
+      color: #fff;
+      padding: 0.6rem 1.2rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .copy-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-shell">
+
+    <!-- Top Navigation & Protocol Header -->
+    <header class="nav-header">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">Password Strength Analyzer</div>
+          <div class="brand-subtitle">By Aryan Kumar &amp; Md Zeya Ansari</div>
+        </div>
+      </div>
+      <div class="status-badge">
+        <span class="pulse-dot"></span>
+        <span>Password Check</span>
+      </div>
+    </header>
+
+    <!-- Input & Control Panel -->
+    <section class="card">
+      <div class="card-header">
+        <span class="card-label">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+          </svg>
+          Master Passphrase Input
+        </span>
+        <span id="charCount" style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);">0
+          chars</span>
+      </div>
+
+      <div class="input-wrapper">
+        <input type="password" id="pwdInput" class="password-input"
+          placeholder="Enter password to conduct security audit…" autocomplete="off" spellcheck="false" />
+        <div class="input-actions">
+          <button class="icon-btn" id="copyBtn" title="Copy to clipboard" type="button">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+          <button class="icon-btn" id="eyeToggle" title="Toggle visibility" type="button">
+            <svg id="eyeIcon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="btn btn-primary" id="checkBtn" type="button">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          Check
+        </button>
+        <button class="btn btn-secondary" id="genBtn" type="button">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Generate Random
+        </button>
+      </div>
+    </section>
+
+    <!-- Executive Assessment Overview -->
+    <section class="card">
+      <div class="card-header">
+        <span class="card-label">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Audit Telemetry
+        </span>
+        <span id="strengthText" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">AWAITING
+          INPUT</span>
+      </div>
+
+      <!-- 2-Grid Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <span class="metric-caption">Strength Rating</span>
+          <span class="metric-value" id="badgeValue">—</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-caption">Compliance Score</span>
+          <span class="metric-value" id="scoreValue">0 / 5</span>
+        </div>
+      </div>
+
+      <!-- Segmented Progress Bar -->
+      <div class="meter-container">
+        <div class="meter-header">
+          <span>Security Confidence Level</span>
+          <span id="meterPercent" style="font-family: var(--font-mono);">0%</span>
+        </div>
+        <div class="meter-segments">
+          <div class="meter-segment" id="seg1"></div>
+          <div class="meter-segment" id="seg2"></div>
+          <div class="meter-segment" id="seg3"></div>
+          <div class="meter-segment" id="seg4"></div>
+          <div class="meter-segment" id="seg5"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Policy Compliance Checklist -->
+    <section class="card">
+      <div class="card-header">
+        <span class="card-label">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+          Policy Compliance Checklist
+        </span>
+        <span style="font-size: 0.72rem; color: var(--text-muted);">NIST Guidelines</span>
+      </div>
+
+      <ul class="policy-checklist">
+        <li class="policy-item" id="item-length">
+          <div class="policy-item-left">
+            <div class="policy-status-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span>Minimum Length Policy</span>
+          </div>
+          <span class="policy-badge">&ge; 8 characters</span>
+        </li>
+        <li class="policy-item" id="item-uppercase">
+          <div class="policy-item-left">
+            <div class="policy-status-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span>Uppercase Alphabetical</span>
+          </div>
+          <span class="policy-badge">A – Z</span>
+        </li>
+        <li class="policy-item" id="item-lowercase">
+          <div class="policy-item-left">
+            <div class="policy-status-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span>Lowercase Alphabetical</span>
+          </div>
+          <span class="policy-badge">a – z</span>
+        </li>
+        <li class="policy-item" id="item-digit">
+          <div class="policy-item-left">
+            <div class="policy-status-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span>Numeric Digits</span>
+          </div>
+          <span class="policy-badge">0 – 9</span>
+        </li>
+        <li class="policy-item" id="item-special">
+          <div class="policy-item-left">
+            <div class="policy-status-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span>Cryptographic Symbol Set</span>
+          </div>
+          <span class="policy-badge">@ # $ % &hellip;</span>
+        </li>
+        <li class="policy-item" id="item-common">
+          <div class="policy-item-left">
+            <div class="policy-status-icon">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span>Not in Common Passwords Blacklist</span>
+          </div>
+          <span class="policy-badge">SecLists / Top 10K</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Breach Intelligence Alert -->
+    <section class="breach-card" id="breachCard">
+      <div class="breach-card-top">
+        <span class="breach-tag">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
+          </svg>
+          <span id="breachHeader">Breach Surveillance</span>
+        </span>
+        <span class="breach-count-pill" id="breachPill" style="display: none;">0 Exposures</span>
+      </div>
+      <div class="breach-explanation" id="breachMsg">
+        Evaluating against global compromised credential databases...
+      </div>
+    </section>
+
+    <!-- Remediation Guidance -->
+    <section class="remediation-card" id="remediationCard">
+      <div class="remediation-header">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        Security Advisory &amp; Action Items
+      </div>
+      <ul class="remediation-list" id="remediationList"></ul>
+    </section>
+
+    <!-- Common Passwords to Avoid Section -->
+    <section class="card" style="padding: 1.25rem 1.45rem;">
+      <div class="card-header" style="margin-bottom: 0.65rem;">
+        <span class="card-label">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          Common Passwords to Never Use
+        </span>
+        <span style="font-size: 0.72rem; color: var(--text-muted);">Click pill to test</span>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.4;">
+        These highly predictable passwords are found in billions of leaked records and are cracked instantaneously:
+      </p>
+      <div class="common-pills" id="commonPills"></div>
+    </section>
+
+  </div><!-- /app-shell -->
+
+  <div class="copy-toast" id="copyToast">Copied to clipboard</div>
+
+  <script>
+    /* ── DOM Handles ── */
+    const pwdInput = document.getElementById('pwdInput');
+    const eyeToggle = document.getElementById('eyeToggle');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const copyBtn = document.getElementById('copyBtn');
+    const copyToast = document.getElementById('copyToast');
+    const checkBtn = document.getElementById('checkBtn');
+    const genBtn = document.getElementById('genBtn');
+    const charCount = document.getElementById('charCount');
+    const strengthText = document.getElementById('strengthText');
+    const badgeValue = document.getElementById('badgeValue');
+    const scoreValue = document.getElementById('scoreValue');
+    const meterPercent = document.getElementById('meterPercent');
+    const segments = [1, 2, 3, 4, 5].map(i => document.getElementById('seg' + i));
+    const policyItems = {
+      length: document.getElementById('item-length'),
+      uppercase: document.getElementById('item-uppercase'),
+      lowercase: document.getElementById('item-lowercase'),
+      digit: document.getElementById('item-digit'),
+      special: document.getElementById('item-special'),
+      common: document.getElementById('item-common'),
+    };
+    const commonPills = document.getElementById('commonPills');
+    const breachCard = document.getElementById('breachCard');
+    const breachHeader = document.getElementById('breachHeader');
+    const breachMsg = document.getElementById('breachMsg');
+    const breachPill = document.getElementById('breachPill');
+    const remediationCard = document.getElementById('remediationCard');
+    const remediationList = document.getElementById('remediationList');
+
+    /* ── Theme Definitions ── */
+    const strengthThemes = {
+      'VERY WEAK': { color: '#f43f5e', text: 'CRITICAL', pct: '20%' },
+      'WEAK': { color: '#f97316', text: 'VULNERABLE', pct: '40%' },
+      'MEDIUM': { color: '#f59e0b', text: 'MODERATE', pct: '60%' },
+      'STRONG': { color: '#10b981', text: 'SECURE', pct: '80%' },
+      'VERY STRONG': { color: '#8b5cf6', text: 'CRYPTOGRAPHIC', pct: '100%' }
+    };
+
+    /* ── Eye Toggle (Show / Hide) ── */
+    eyeToggle.addEventListener('click', () => {
+      const isHidden = pwdInput.type === 'password';
+      pwdInput.type = isHidden ? 'text' : 'password';
+      eyeIcon.innerHTML = isHidden
+        ? `<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />`
+        : `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />`;
+    });
+
+    /* ── Copy to Clipboard ── */
+    copyBtn.addEventListener('click', () => {
+      if (!pwdInput.value) return;
+      navigator.clipboard.writeText(pwdInput.value).then(() => {
+        copyToast.classList.add('show');
+        setTimeout(() => copyToast.classList.remove('show'), 2000);
+      });
+    });
+
+    /* ── Generate Strong Token ── */
+    genBtn.addEventListener('click', () => {
+      const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const lower = 'abcdefghijklmnopqrstuvwxyz';
+      const num = '0123456789';
+      const sym = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+      const all = upper + lower + num + sym;
+
+      let pass = [
+        upper[Math.floor(Math.random() * upper.length)],
+        lower[Math.floor(Math.random() * lower.length)],
+        num[Math.floor(Math.random() * num.length)],
+        sym[Math.floor(Math.random() * sym.length)]
+      ];
+      for (let i = 4; i < 18; i++) {
+        pass.push(all[Math.floor(Math.random() * all.length)]);
+      }
+      pwdInput.value = pass.sort(() => Math.random() - 0.5).join('');
+      pwdInput.type = 'text';
+      eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />`;
+      pwdInput.dispatchEvent(new Event('input'));
+      executeAudit();
+    });
+
+    /* ── Manual Check Button ── */
+    checkBtn.addEventListener('click', () => executeAudit());
+
+    /* ── Input Event (Updates character counter only - Auto search disabled) ── */
+    pwdInput.addEventListener('input', () => {
+      const len = pwdInput.value.length;
+      charCount.textContent = `${len} char${len === 1 ? '' : 's'}`;
+      if (len === 0) {
+        resetInterface();
+      }
+    });
+
+    /* ── Enter Key Triggers Check Button ── */
+    pwdInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        executeAudit();
+      }
+    });
+
+    /* ── Core Audit Dispatcher (Triggered on Check Button Click / Enter) ── */
+    async function executeAudit() {
+      const val = pwdInput.value;
+      if (!val) {
+        pwdInput.focus();
+        resetInterface();
+        return;
+      }
+
+      checkBtn.disabled = true;
+      const originalBtnHTML = checkBtn.innerHTML;
+      checkBtn.innerHTML = `
+        <svg class="spin-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="width:14px;height:14px;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Auditing...`;
+
+      setBreachStateChecking();
+
+      const payload = JSON.stringify({ password: val });
+      const headers = { 'Content-Type': 'application/json' };
+
+      try {
+        const [resAnalyze, resBreach] = await Promise.all([
+          fetch('/analyze', { method: 'POST', headers, body: payload }),
+          fetch('/breach', { method: 'POST', headers, body: payload })
+        ]);
+
+        const dataAnalyze = await resAnalyze.json();
+        const dataBreach = await resBreach.json();
+
+        applyAnalysisTelemetry(dataAnalyze);
+        applyBreachAlert(dataBreach);
+
+      } catch (err) {
+        console.error('Audit execution error:', err);
+      } finally {
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = originalBtnHTML;
+      }
+    }
+
+    function applyAnalysisTelemetry(data) {
+      const meta = strengthThemes[data.strength] || strengthThemes['VERY WEAK'];
+
+      strengthText.textContent = meta.text;
+      strengthText.style.color = meta.color;
+
+      badgeValue.textContent = data.strength;
+      badgeValue.style.color = meta.color;
+
+      scoreValue.textContent = `${data.score} / 5`;
+      meterPercent.textContent = meta.pct;
+
+      // Illuminating Segmented Progress
+      segments.forEach((seg, idx) => {
+        seg.style.background = idx < data.score ? meta.color : 'var(--bg-elevated)';
+      });
+
+      // Update Checklist Policies
+      Object.entries(data.checks).forEach(([key, isPass]) => {
+        const el = policyItems[key];
+        if (!el) return;
+        el.classList.toggle('passed', isPass);
+        el.classList.toggle('failed', !isPass);
+      });
+
+      // Common password blacklist status
+      if (policyItems.common) {
+        policyItems.common.classList.toggle('passed', !data.is_common);
+        policyItems.common.classList.toggle('failed', !!data.is_common);
+      }
+
+      // Action Items / Remediation Guidance
+      if (data.suggestions && data.suggestions.length > 0) {
+        remediationCard.style.display = 'block';
+        remediationList.innerHTML = data.suggestions
+          .map(s => `<li class="remediation-item">${s}</li>`)
+          .join('');
+      } else {
+        remediationCard.style.display = 'none';
+      }
+    }
+
+    function setBreachStateChecking() {
+      breachCard.style.display = 'block';
+      breachCard.className = 'breach-card checking';
+      breachHeader.textContent = 'Querying Global Threat Feed…';
+      breachMsg.textContent = 'Submitting SHA-1 prefix via k-anonymity protocol to cross-reference known breach telemetry…';
+      breachPill.style.display = 'none';
+    }
+
+    function applyBreachAlert(data) {
+      breachCard.style.display = 'block';
+      breachPill.style.display = 'none';
+
+      if (data.status === 'leaked') {
+        breachCard.className = 'breach-card leaked';
+        breachHeader.textContent = 'CRITICAL VULNERABILITY: CREDENTIAL COMPROMISED';
+        breachPill.textContent = `${Number(data.count).toLocaleString()} Breaches`;
+        breachPill.style.display = 'inline-block';
+        breachMsg.textContent = `This password has been indexed in ${Number(data.count).toLocaleString()} recorded security breaches. It is actively leveraged in automated dictionary attacks. Deprecate immediately.`;
+      } else if (data.status === 'safe') {
+        breachCard.className = 'breach-card safe';
+        breachHeader.textContent = 'ZERO EXPOSURE DETECTED';
+        breachMsg.textContent = 'Zero occurrences located in known breach indices (HaveIBeenPwned 840M+ directory). Passphrase demonstrates high integrity against credential-stuffing databases.';
+      } else {
+        breachCard.className = 'breach-card';
+        breachHeader.textContent = 'THREAT FEED UNREACHABLE';
+        breachMsg.textContent = data.message || 'Unable to establish secure tunnel to breach telemetry service. Verify internet connectivity.';
+      }
+    }
+
+    function resetInterface() {
+      strengthText.textContent = 'AWAITING INPUT';
+      strengthText.style.color = 'var(--text-muted)';
+      badgeValue.textContent = '—';
+      badgeValue.style.color = 'var(--text-primary)';
+      scoreValue.textContent = '0 / 5';
+      meterPercent.textContent = '0%';
+      charCount.textContent = '0 chars';
+
+      segments.forEach(seg => seg.style.background = 'var(--bg-elevated)');
+      Object.values(policyItems).forEach(el => el.classList.remove('passed', 'failed'));
+
+      breachCard.style.display = 'none';
+      remediationCard.style.display = 'none';
+    }
+    // Populate Common Passwords to Avoid Pills
+    const defaultCommonExamples = [
+      "123456", "password", "123456789", "qwerty", "admin",
+      "welcome", "iloveyou", "12345678", "password123", "pass1234", "dragon", "monkey"
+    ];
+    if (commonPills) {
+      commonPills.innerHTML = defaultCommonExamples.map(p => 
+        `<span class="common-pill" title="Click to test ${p}">${p}</span>`
+      ).join('');
+
+      commonPills.querySelectorAll('.common-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          pwdInput.value = pill.textContent.trim();
+          pwdInput.type = 'text';
+          eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />`;
+          pwdInput.dispatchEvent(new Event('input'));
+          executeAudit();
+        });
+      });
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialPwd = urlParams.get('pwd');
+    if (initialPwd) {
+      pwdInput.value = initialPwd;
+      pwdInput.dispatchEvent(new Event('input'));
+      executeAudit();
+    }
+  </script>
+</body>
+
+</html>
